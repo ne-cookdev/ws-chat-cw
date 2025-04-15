@@ -6,7 +6,7 @@ from rest_framework import serializers
 class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
-        exclude = ('conversation_id',)
+        exclude = ('id',)
 
 
 class ConversationListSerializer(serializers.ModelSerializer):
@@ -16,11 +16,11 @@ class ConversationListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conversation
-        fields = ['initiator', 'receiver', 'last_message']
+        fields = ['id', 'initiator', 'receiver', 'last_message']
 
     def get_last_message(self, instance):
         message = instance.message_set.first()
-        return MessageSerializer(instance=message)
+        return MessageSerializer(instance=message).data
 
 
 class ConversationSerializer(serializers.ModelSerializer):
