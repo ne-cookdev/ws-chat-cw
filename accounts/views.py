@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 
 @api_view(['GET'])
 def user_list(request, ):
-    users = User.objects.all().order_by('username')
+    users = User.objects.all().order_by('username').exclude(username=request.user)
     serializer = UserSerializer(instance=users, many=True)
     return Response(serializer.data)
 
