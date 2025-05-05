@@ -19,6 +19,7 @@ class Message(models.Model):
     attachment = models.FileField(blank=True)
     conversation_id = models.ForeignKey(Conversation, on_delete=models.CASCADE,)
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False, null=False, blank=False)
 
     class Meta:
         ordering = ('-timestamp', )

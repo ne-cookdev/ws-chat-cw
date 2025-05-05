@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Conversation
+from .models import Conversation, Message
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from accounts.models import MyUser as User
@@ -35,6 +35,16 @@ def get_conversation(request, convo_id):
     else:
         serializer = ConversationSerializer(instance=conversation[0])
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_unread_messages(request, convo_id):
+    conversation = Conversation.objects.filter(id=convo_id)
+    if not conversation.exists():
+        return Response({'message': 'Conversation does not exist'})
+    else:
+        messages = Message.objects.filter(conversation_id=conversation).exclude(sender=request.user)
+        return Response(data=len(messages), status=200)
 
 
 @api_view(['GET'])

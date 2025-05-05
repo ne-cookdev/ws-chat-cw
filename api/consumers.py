@@ -16,6 +16,11 @@ class ChatConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
         self.room_group_name = f"chat_{self.room_name}"
+        conversation = Conversation.objects.get(id=int(self.room_name))
+        messages = Message.objects.filter(conversation_id=conversation).exclude(sender=self.scope['user'])
+        for message in messages:
+            message.is_read = True
+            message.save()
 
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
@@ -25,6 +30,11 @@ class ChatConsumer(WebsocketConsumer):
 
     def disconnect(self, close_code):
         # Leave room group
+        conversation = Conversation.objects.get(id=int(self.room_name))
+        messages = Message.objects.filter(conversation_id=conversation).exclude(sender=self.scope['user'])
+        for message in messages:
+            message.is_read = True
+            message.save()
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
