@@ -42,7 +42,7 @@ def get_unread_messages(request, convo_id):
     if not conversation.exists():
         return Response({'message': 'Conversation does not exist'})
     else:
-        messages = Message.objects.filter(conversation_id=conversation[0]).exclude(sender=request.user)
+        messages = Message.objects.filter(conversation_id=conversation[0], is_read=False).exclude(sender=request.user)
         return Response(data=len(messages), status=200)
 
 
