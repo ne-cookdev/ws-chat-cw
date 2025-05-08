@@ -46,25 +46,12 @@ class ChatConsumer(WebsocketConsumer):
 
         # Send message to room group
         chat_type = {"type": "chat_message"}
-        return_dict = {**chat_type, **text_data_json}
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            return_dict,
-        )
-
-    # Receive message from room group
-    def chat_message(self, event):
-        text_data_json = event.copy()
-        text_data_json.pop("type")
+        conversation = Conversation.objects.get(id=int(self.room_name))
+        sender = self.scope['user']
         message, attachment = (
             text_data_json["message"],
             text_data_json.get("attachment"),
         )
-
-        conversation = Conversation.objects.get(id=int(self.room_name))
-        sender = self.scope['user']
-
-        # Attachment
         if attachment:
             file_str, file_ext = attachment["data"], attachment["format"]
 
@@ -83,7 +70,19 @@ class ChatConsumer(WebsocketConsumer):
                 text=message,
                 conversation_id=conversation,
             )
-        serializer = MessageSerializer(instance=_message)
+        text_data_json['_message'] = _message
+        return_dict = {**chat_type, **text_data_json}
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            return_dict,
+        )
+
+    # Receive message from room group
+    def chat_message(self, event):
+        text_data_json = event.copy()
+        text_data_json.pop("type")
+
+        serializer = MessageSerializer(instance=text_data_json['_message'])
         # Send message to WebSocket
         self.send(
             text_data=json.dumps(
